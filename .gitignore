@@ -1,0 +1,13 @@
+# raw SEC archives are not redistributed (download them from sec.gov into data/raw/)
+data/raw/
+*.zip
+# offline copies of user-written Stata packages, if any
+ado/
+ado_offline_update/
+# Stata and Python scratch
+*.gph
+__pycache__/
+.ipynb_checkpoints/
+# OS files
+Thumbs.db
+.DS_Store
