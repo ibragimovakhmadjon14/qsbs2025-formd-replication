@@ -1,0 +1,7 @@
+="Table A6. Sensitivity of the monthly triple-difference count estimate to the variance estimator"
+="",="V",="",=""
+="",="b",="se",="p"
+="robust_HC",="0.0065",="0.102",="0.95"
+="cluster_state_x_group",="0.0065",="0.131",="0.96"
+="cluster_state",="0.0065",="0.134",="0.96"
+="cluster_cell",="0.0065",="0.169",="0.97"

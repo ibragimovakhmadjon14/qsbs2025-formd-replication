@@ -1,0 +1,52 @@
+state,conform,nonconform,partial,notax,static_conformity,state_shock,drop_in_robustness,confidence,note,source
+AL,0,1,0,0,,0,0,high,No §1202 analog; QSBS gain fully taxed (5%),FBT Gibbons survey Aug-2025; Keystone Apr-2026; CT Acquisitions matrix Jun-2026
+AK,0,0,0,1,,0,0,high,No personal income tax,CT Acquisitions matrix Jun-2026
+AZ,1,0,0,0,0,0,0,medium,Conforms via federal AGI; conformity updated annually (check whether OBBBA picked up in 2026 session),CT Acquisitions matrix Jun-2026 (lists as rolling)
+AR,1,0,0,0,0,0,0,medium,Conforms to §1202; separate 50% LTCG reduction on ordinary gains,CT Acquisitions matrix Jun-2026
+CA,0,1,0,0,1,0,0,high,Explicit non-conformity: RTC §18152; Cutler v. FTB (2012); AB 1412 (2013); FTB Pub. 1001 add-back,FBT Gibbons Aug-2025; Keystone Apr-2026; CT Acquisitions Jun-2026
+CO,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+CT,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+DE,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+DC,0,1,0,0,0,1,1,low,"Historically conforming (rolling). Emergency Act 26-214 (3 Dec 2025) and Temporary Act 26-217 (20 Dec 2025) disallow §1202 exclusion retroactive to 1 Jan 2025; Congress disapproved (H.J.Res.142, Feb 2026); CFO says decoupling still applies for TY2025; temporary act runs to late Sep 2026. Status contested -> drop in robustness",CohnReznick Dec-2025; ArentFox Schiff Mar-2026; Tax Notes Mar-2026; Keystone Apr-2026
+FL,0,0,0,1,,0,0,high,No personal income tax,CT Acquisitions matrix Jun-2026
+GA,1,0,0,0,1,0,0,medium,Static conformity (IRC as of 1 Jan 2025); OBBBA pickup via 2026 session bill,CT Acquisitions matrix Jun-2026
+HI,0,0,1,0,1,0,0,high,Partial: only the original 50% exclusion (HRS §235-2.4); remaining gain taxed at 7.25%,Millan CPA Dec-2025; CT Acquisitions Jun-2026
+ID,1,0,0,0,1,0,0,medium,Static; 2026 conformity update incorporated OBBBA,CT Acquisitions matrix Jun-2026
+IL,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+IN,1,0,0,0,1,0,0,medium,Static; updated annually (2025 update incorporated OBBBA),CT Acquisitions matrix Jun-2026
+IA,1,0,0,0,1,0,0,medium,Static (IRC as of 28 Mar 2025); OBBBA pickup pending 2026 session,CT Acquisitions matrix Jun-2026
+KS,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+KY,1,0,0,0,1,0,0,medium,Static (31 Dec 2024); OBBBA pickup pending 2026 session,CT Acquisitions matrix Jun-2026
+LA,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+ME,1,0,0,0,1,0,0,medium,Static (28 Mar 2025); OBBBA pickup pending,CT Acquisitions matrix Jun-2026
+MD,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+MA,1,0,0,0,1,0,0,medium,Full §1202 conformity for TY2022+ (TIR 22-7 / TIR 23-5); PIT conforms to IRC as of 1 Jan 2022 -> OBBBA expansion needs a conformity-date update (verify). 4% surtax over ~$1m does not hit excluded gain,CT Acquisitions Jun-2026 (calls it rolling); Keystone Apr-2026 (TIR 23-5)
+MI,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+MN,1,0,0,0,1,0,0,medium,Static; OBBBA pickup pending 2026 session,CT Acquisitions matrix Jun-2026
+MS,0,1,0,0,,0,0,high,No §1202 analog; gain taxed at flat 4% (2026),FBT Gibbons Aug-2025; CT Acquisitions Jun-2026
+MO,1,0,0,0,0,1,0,medium,Rolling conformity; in addition HB 594 (2025) reportedly exempts all individual capital gains from TY2025 -> state CGT effectively zero (verify text/effective date),Keystone Apr-2026 (Missouri note); CT Acquisitions Jun-2026
+MT,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+NE,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+NV,0,0,0,1,,0,0,high,No personal income tax,CT Acquisitions matrix Jun-2026
+NH,0,0,0,1,,0,0,high,No tax on wages or capital gains (I&D tax repealed 1 Jan 2025),CT Acquisitions matrix Jun-2026
+NJ,1,0,0,0,0,1,1,high,"Non-conforming through TY2025; P.L. 2025 c.67 (A4455/S4503, signed 30 Jun 2025) conforms for tax years from 1 Jan 2026 -> stock issued after 4 Jul 2025 will be sold under conformity. Own reform coincides with federal reform -> flag; drop in robustness",FBT Gibbons Aug-2025; Keystone Apr-2026; CT Acquisitions Jun-2026
+NM,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+NY,1,0,0,0,0,0,0,high,Rolling conformity; S8921 decoupling bill (introduced 15 Jan 2026) not enacted,CT Acquisitions Jun-2026; Startup Law Blog May-2026
+NC,1,0,0,0,1,0,0,medium,Static (1 Jan 2023); OBBBA pickup pending 2026 session,CT Acquisitions matrix Jun-2026
+ND,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+OH,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+OK,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+OR,0,1,0,0,0,1,1,high,"Conformed through 2025; SB 1507 (House 25 Feb 2026, signed 9 Apr 2026) decouples from §1202 for sales on/after 1 Jan 2026 -> stock issued after 4 Jul 2025 will be sold under non-conformity, but the change was unknown before Feb 2026. Code as nonconform; drop in robustness",Baker Tilly Jun-2026; Foster Garvey May-2026; Startup Law Blog Apr-2026
+PA,0,1,0,0,,0,0,high,No Subchapter P recognition; PA DOR FAQ 3885; flat 3.07% on full gain,FBT Gibbons Aug-2025; CT Acquisitions Jun-2026
+RI,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+SC,1,0,0,0,0,0,0,high,Rolling conformity (+44% state LTCG deduction),CT Acquisitions matrix Jun-2026
+SD,0,0,0,1,,0,0,high,No personal income tax,CT Acquisitions matrix Jun-2026
+TN,0,0,0,1,,0,0,high,No tax on wages or capital gains (Hall tax repealed 2021),CT Acquisitions matrix Jun-2026
+TX,0,0,0,1,,0,0,high,No personal income tax,CT Acquisitions matrix Jun-2026
+UT,1,0,0,0,0,0,0,high,Rolling conformity,CT Acquisitions matrix Jun-2026
+VT,1,0,0,0,1,0,0,medium,Static (31 Dec 2023); OBBBA pickup pending 2026 session,CT Acquisitions matrix Jun-2026
+VA,1,0,0,0,1,0,0,medium,Static (1 Jan 2025); OBBBA pickup pending 2026 session,CT Acquisitions matrix Jun-2026
+WA,0,0,0,0,,0,1,medium,"No PIT but 7% excise tax on LTCG above ~$270k (RCW 82.87), plus 2.9% on gains above $1m from 2025. The tax base starts from federal net long-term capital gain, so gain excluded under §1202 is not taxed (WA DOR capital gains tax FAQ, accessed 1 Oct 2026); an earlier practitioner matrix (CT Acquisitions) stated otherwise. Kept in the Table 6 reference group with Hawaii; dropped in robustness",WA DOR FAQ Oct-2026; Keystone Apr-2026; CT Acquisitions Jun-2026
+WV,1,0,0,0,1,0,0,medium,Static; updated annually,CT Acquisitions matrix Jun-2026
+WI,1,0,0,0,1,0,0,high,Full conformity since 2023 Wis. Act 36 (retroactive to 2019); OBBBA picked up per WDOR FAQ,CT Acquisitions matrix Jun-2026
+WY,0,0,0,1,,0,0,high,No personal income tax,CT Acquisitions matrix Jun-2026

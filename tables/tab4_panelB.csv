@@ -1,0 +1,13 @@
+="Table 4, Panel B. ln(amount sold): difference-in-differences by entity type and treated sub-industry"
+
+="",="(1)",="(2)",="(3)",="(4)",="(5)",="(6)"
+="",="C-corps vs all other",="C-corps vs excluded",="LLCs vs other LLCs",="technology",="biotech/pharma",="manuf/retail/energy"
+
+="Eligible x Post",="-0.324***",="-0.341**",="-0.183",="-0.390***",="-0.236*",="0.120"
+="",="(0.092)",="(0.141)",="(0.199)",="(0.108)",="(0.135)",="(0.157)"
+
+="Implied change, %",="-27.7",="-28.9",="-16.7",="-32.3",="-21.0",="12.7"
+="Observations",="51,111",="34,167",="37,178",="42,760",="25,387",="23,278"
+
+="Standard errors in parentheses"
+="* p<0.10, ** p<0.05, *** p<0.01"

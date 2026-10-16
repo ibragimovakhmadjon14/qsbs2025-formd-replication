@@ -1,0 +1,482 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}C:\Users\user\Desktop\qsbs2025_stata_package (1)\qsbs2025_text_numbers.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res} 7 Oct 2026, 17:12:38
+{txt}
+{com}. * The datasets saved by the NEW qsbs2025_replication.do must all be in one folder.
+. local need "analysis_sample panel_corp_quarterly panel_main_monthly panel_main_quarterly retiming_weekly"
+{txt}
+{com}. local found ""
+{txt}
+{com}. foreach cand in "data/clean" "qsbs2025_stata_package/data/clean" "." {c -(}
+{txt}  2{com}.     if "`found'" == "" {c -(}
+{txt}  3{com}.         local ok = 1
+{txt}  4{com}.         foreach f of local need {c -(}
+{txt}  5{com}.             cap confirm file "`cand'/`f'.dta"
+{txt}  6{com}.             if _rc != 0 local ok = 0
+{txt}  7{com}.         {c )-}
+{txt}  8{com}.         if `ok' == 1 local found "`cand'"
+{txt}  9{com}.     {c )-}
+{txt} 10{com}. {c )-}
+{txt}
+{com}. di as text "current folder: " c(pwd)
+{res}{txt}current folder: C:\Users\user\Desktop\qsbs2025_stata_package (1)
+
+{com}. if "`found'" == "" {c -(}
+.     di as error "The datasets of qsbs2025_replication.do are not all in data/clean of this folder."
+.     di as error `"Type   cd "C:\Users\user\Desktop\qsbs2025_stata_package (1)"   (the folder where you ran qsbs2025_replication.do)"'
+.     di as error "and run this file again."
+.     exit 601
+. {c )-}
+{txt}
+{com}. global D "`found'"
+{txt}
+{com}. di as text "data folder: $D"
+{res}{txt}data folder: data/clean
+
+{com}. * the datasets must come from the new version of qsbs2025_replication.do (revenue cut-off USD 5 million)
+. use "$D/analysis_sample.dta", clear
+{txt}
+{com}. cap confirm variable rev25
+{txt}
+{com}. local new = (_rc == 0)
+{txt}
+{com}. qui count if late_rev == 1 & ambig == 0
+{txt}
+{com}. if `new' == 0 | r(N) != 954 {c -(}
+.     di as error "data/clean/analysis_sample.dta comes from an older run (" r(N) " offerings with revenue above USD 5 million, expected 954)."
+.     di as error "Run the new qsbs2025_replication.do in this folder first, then this file."
+.     exit 459
+. {c )-}
+{txt}
+{com}. di as text "analysis_sample.dta is from the new run: 954 offerings with revenue above USD 5 million"
+{res}{txt}analysis_sample.dta is from the new run: 954 offerings with revenue above USD 5 million
+
+{com}. 
+. * show "label" coefficient t|z : b, se and the p-value the command itself reports
+. cap program drop show
+{txt}
+{com}. program define show
+{txt}  1{com}.     args lab v dist
+{txt}  2{com}.     local b  = _b[`v']
+{txt}  3{com}.     local se = _se[`v']
+{txt}  4{com}.     if "`dist'" == "t" local p = 2 * ttail(e(df_r), abs(`b' / `se'))
+{txt}  5{com}.     else local p = 2 * normal(-abs(`b' / `se'))
+{txt}  6{com}.     di as result %-44s "`lab'" " b = " %10.5f `b' "   se = " %9.5f `se' "   p = " %7.4f `p' "   N = " %7.0f e(N)
+{txt}  7{com}. end
+{txt}
+{com}. 
+. *------------------------------------------------------------------------------*
+. di as result _n "== Table 3 (and Table A6 baseline) =="
+{res}
+== Table 3 (and Table A6 baseline) ==
+{txt}
+{com}. use "$D/panel_corp_quarterly.dta", clear
+{txt}
+{com}. qui ppmlhdfe n ep if yq >= tq(2023q1), absorb(cell yq) vce(cluster cell)
+{txt}
+{com}. show "T3 c1 primary, 2023Q1-2026Q1 (= T8A row 1)" ep z
+{res}T3 c1 primary, 2023Q1-2026Q1 (= T8A row 1)   b =    0.03210   se =   0.06837   p =  0.6387   N =    1326
+{txt}
+{com}. qui ppmlhdfe n ep, absorb(cell yq) vce(cluster cell)
+{txt}
+{com}. show "T3 c2 broad, 2019Q1-2026Q1" ep z
+{res}T3 c2 broad, 2019Q1-2026Q1                   b =    0.10790   se =   0.10764   p =  0.3161   N =    2958
+{txt}
+{com}. use "$D/panel_main_monthly.dta", clear
+{txt}
+{com}. qui ppmlhdfe n ep if corp == 1, absorb(cell ym) vce(cluster st_el)
+{txt}
+{com}. show "T3 c3 C-corps narrow monthly" ep z
+{res}T3 c3 C-corps narrow monthly                 b =   -0.06010   se =   0.11947   p =  0.6149   N =    9078
+{txt}
+{com}. qui ppmlhdfe n ep if corp == 0, absorb(cell ym) vce(cluster st_el)
+{txt}
+{com}. show "T3 c4 LLCs narrow monthly" ep z
+{res}T3 c4 LLCs narrow monthly                    b =   -0.07076   se =   0.12285   p =  0.5646   N =    9078
+{txt}
+{com}. qui ppmlhdfe n ecp, absorb(cell elig#ym corp#ym) vce(cluster st_el)
+{txt}
+{com}. show "T3 c5 DDD monthly (= A6 baseline)" ecp z
+{res}T3 c5 DDD monthly (= A6 baseline)            b =    0.00653   se =   0.13114   p =  0.9603   N =   18156
+{txt}
+{com}. qui ppmlhdfe n_first ecp, absorb(cell elig#ym corp#ym) vce(cluster st_el)
+{txt}
+{com}. show "T3 c6 DDD first-time issuers" ecp z
+{res}T3 c6 DDD first-time issuers                 b =    0.04811   se =   0.15635   p =  0.7583   N =   18156
+{txt}
+{com}. 
+. di as result _n "== Table A6 =="
+{res}
+== Table A6 ==
+{txt}
+{com}. egen st = group(state)
+{txt}
+{com}. qui ppmlhdfe n ecp, absorb(cell elig#ym corp#ym) vce(robust)
+{txt}
+{com}. show "A6 robust" ecp z
+{res}A6 robust                                    b =    0.00653   se =   0.10154   p =  0.9487   N =   18156
+{txt}
+{com}. qui ppmlhdfe n ecp, absorb(cell elig#ym corp#ym) vce(cluster st)
+{txt}
+{com}. show "A6 cluster state" ecp z
+{res}A6 cluster state                             b =    0.00653   se =   0.13402   p =  0.9611   N =   18156
+{txt}
+{com}. qui ppmlhdfe n ecp, absorb(cell elig#ym corp#ym) vce(cluster cell)
+{txt}
+{com}. show "A6 cluster cell" ecp z
+{res}A6 cluster cell                              b =    0.00653   se =   0.16935   p =  0.9692   N =   18156
+{txt}
+{com}. 
+. di as result _n "== Table A5 =="
+{res}
+== Table A5 ==
+{txt}
+{com}. use "$D/panel_main_monthly.dta", clear
+{txt}
+{com}. keep if ym < tm(2025m7)
+{txt}(2,244 observations deleted)
+
+{com}. gen trend = ym - tm(2019m1)
+{txt}
+{com}. gen ec_trend = elig * corp * trend
+{txt}
+{com}. qui ppmlhdfe n ec_trend, absorb(cell elig#ym corp#ym) vce(cluster st_el)
+{txt}
+{com}. show "A5 PPML" ec_trend z
+{res}A5 PPML                                      b =    0.00965   se =   0.00353   p =  0.0062   N =   15912
+{txt}
+{com}. qui reghdfe ln_n ec_trend, absorb(cell elig#ym corp#ym) vce(cluster st_el)
+{txt}
+{com}. show "A5 OLS ln(1+n)" ec_trend t
+{res}A5 OLS ln(1+n)                               b =    0.00344   se =   0.00094   p =  0.0004   N =   15912
+{txt}
+{com}. 
+. di as result _n "== Table 8, Panel A (actual estimates) =="
+{res}
+== Table 8, Panel A (actual estimates) ==
+{txt}
+{com}. use "$D/panel_main_quarterly.dta", clear
+{txt}
+{com}. qui ppmlhdfe n ecp if yq >= tq(2025q3) - 10 & yq <= tq(2025q3) + 2, absorb(cell elig#yq corp#yq) vce(cluster st_el)
+{txt}
+{com}. show "T8A quarterly DDD" ecp z
+{res}T8A quarterly DDD                            b =   -0.35886   se =   0.13110   p =  0.0062   N =    2639
+{txt}
+{com}. 
+. di as result _n "== Table 4 =="
+{res}
+== Table 4 ==
+{txt}
+{com}. use "$D/analysis_sample.dta", clear
+{txt}
+{com}. local A "absorb(st_gr_corp elig#ym corp#ym) vce(cluster st_gr)"
+{txt}
+{com}. foreach y in ln_sold big_round ln_inv ln_minin first_formd {c -(}
+{txt}  2{com}.     qui reghdfe `y' ecp if ambig == 0, `A'
+{txt}  3{com}.     show "T4A `y'" ecp t
+{txt}  4{com}. {c )-}
+{res}T4A ln_sold                                  b =    0.06762   se =   0.19975   p =  0.7357   N =   43571
+T4A big_round                                b =   -0.04893   se =   0.02915   p =  0.0964   N =   47989
+T4A ln_inv                                   b =   -0.11726   se =   0.10868   p =  0.2832   N =   47989
+T4A ln_minin                                 b =   -1.06438   se =   0.46823   p =  0.0251   N =   47989
+T4A first_formd                              b =   -0.06189   se =   0.04915   p =  0.2109   N =   47989
+{txt}
+{com}. qui reghdfe ln_sold_orig ep if corp == 1, absorb(st_gr ym) vce(cluster st_gr)
+{txt}
+{com}. show "T4B c1 C-corps vs all other C-corps" ep t
+{res}T4B c1 C-corps vs all other C-corps          b =   -0.32392   se =   0.09165   p =  0.0005   N =   51111
+{txt}
+{com}. qui reghdfe ln_sold_orig ep if corp == 1 & ambig == 0, absorb(st_gr ym) vce(cluster st_gr)
+{txt}
+{com}. show "T4B c2 C-corps vs excluded C-corps" ep t
+{res}T4B c2 C-corps vs excluded C-corps           b =   -0.34139   se =   0.14092   p =  0.0172   N =   34167
+{txt}
+{com}. qui reghdfe ln_sold_orig ep if corp == 0, absorb(st_gr ym) vce(cluster st_gr)
+{txt}
+{com}. show "T4B c3 LLCs vs other LLCs" ep t
+{res}T4B c3 LLCs vs other LLCs                    b =   -0.18329   se =   0.19877   p =  0.3579   N =   37178
+{txt}
+{com}. qui reghdfe ln_sold_orig ep if corp == 1 & (inlist(industry_raw, "Other Technology", "Computers", "Telecommunications") | elig == 0), absorb(st_gr ym) vce(cluster st_gr)
+{txt}
+{com}. show "T4B c4 technology" ep t
+{res}T4B c4 technology                            b =   -0.39004   se =   0.10783   p =  0.0004   N =   42760
+{txt}
+{com}. qui reghdfe ln_sold_orig ep if corp == 1 & (inlist(industry_raw, "Biotechnology", "Pharmaceuticals") | elig == 0), absorb(st_gr ym) vce(cluster st_gr)
+{txt}
+{com}. show "T4B c5 biotech/pharma" ep t
+{res}T4B c5 biotech/pharma                        b =   -0.23609   se =   0.13454   p =  0.0814   N =   25387
+{txt}
+{com}. qui reghdfe ln_sold_orig ep if corp == 1 & (inlist(industry_raw, "Manufacturing", "Retailing", "Other Energy", "Energy Conservation", "Environmental Services") | elig == 0), absorb(st_gr ym) vce(cluster st_gr)
+{txt}
+{com}. show "T4B c6 manuf/retail/energy" ep t
+{res}T4B c6 manuf/retail/energy                   b =    0.11994   se =   0.15702   p =  0.4462   N =   23278
+{txt}
+{com}. * LLC estimate quoted in Section 4.3 (window starting two years before the reform)
+. qui reghdfe ln_sold_orig ep if corp == 0 & ym >= tm(2023m7), absorb(st_gr ym) vce(cluster st_gr)
+{txt}
+{com}. show "Text 4.3 LLCs, from July 2023" ep t
+{res}Text 4.3 LLCs, from July 2023                b =   -0.38953   se =   0.20953   p =  0.0651   N =   13010
+{txt}
+{com}. qui reghdfe ln_sold_orig ep if corp == 0 & ym >= tm(2023m6), absorb(st_gr ym) vce(cluster st_gr)
+{txt}
+{com}. show "Text 4.3 LLCs, from June 2023 (variant)" ep t
+{res}Text 4.3 LLCs, from June 2023 (variant)      b =   -0.40099   se =   0.20836   p =  0.0563   N =   13400
+{txt}
+{com}. 
+. di as result _n "== Table 5 =="
+{res}
+== Table 5 ==
+{txt}
+{com}. preserve
+{txt}
+{com}. keep if ambig == 0
+{txt}(57,156 observations deleted)
+
+{com}. qui reghdfe ln_sold ecp if repeat == 0, `A'
+{txt}
+{com}. show "T5A c1 first rounds" ecp t
+{res}T5A c1 first rounds                          b =   -0.08434   se =   0.26656   p =  0.7524   N =   20393
+{txt}
+{com}. qui reghdfe ln_sold ecp if repeat == 1, `A'
+{txt}
+{com}. show "T5A c2 repeat rounds" ecp t
+{res}T5A c2 repeat rounds                         b =    0.37572   se =   0.40529   p =  0.3561   N =   23168
+{txt}
+{com}. qui reghdfe ln_sold ecp if late_rev == 0, `A'
+{txt}
+{com}. show "T5A c3 revenue <= USD 5m" ecp t
+{res}T5A c3 revenue <= USD 5m                     b =    0.00349   se =   0.20081   p =  0.9862   N =   42819
+{txt}
+{com}. qui reghdfe ln_sold ecp if late_rev == 1, `A'
+{txt}
+{com}. show "T5A c4 revenue > USD 5m" ecp t
+{res}T5A c4 revenue > USD 5m                      b =   -1.06439   se =   2.16666   p =  0.6248   N =     639
+{txt}
+{com}. qui reghdfe ln_inv ecp if repeat == 0, `A'
+{txt}
+{com}. show "T5A c5 first rounds ln(1+investors)" ecp t
+{res}T5A c5 first rounds ln(1+investors)          b =    0.01599   se =   0.15743   p =  0.9193   N =   23125
+{txt}
+{com}. qui reghdfe ln_minin ecp if repeat == 0, `A'
+{txt}
+{com}. show "T5A c6 first rounds ln(1+min inv)" ecp t
+{res}T5A c6 first rounds ln(1+min inv)            b =   -1.05630   se =   0.55041   p =  0.0578   N =   23125
+{txt}
+{com}. qui reghdfe priced_equity ecp, `A'
+{txt}
+{com}. show "T5B c1 priced equity" ecp t
+{res}T5B c1 priced equity                         b =    0.04466   se =   0.04763   p =  0.3506   N =   47989
+{txt}
+{com}. qui reghdfe safe_or_note ecp, `A'
+{txt}
+{com}. show "T5B c2 SAFE or note" ecp t
+{res}T5B c2 SAFE or note                          b =    0.02861   se =   0.01749   p =  0.1049   N =   47989
+{txt}
+{com}. qui reghdfe rule506c ecp, `A'
+{txt}
+{com}. show "T5B c3 Rule 506(c)" ecp t
+{res}T5B c3 Rule 506(c)                           b =   -0.01460   se =   0.05265   p =  0.7820   N =   47989
+{txt}
+{com}. 
+. di as result _n "== Table 6 =="
+{res}
+== Table 6 ==
+{txt}
+{com}. gen ecp_conf = ecp * conform
+{txt}
+{com}. gen ecp_ntx  = ecp * notax
+{txt}
+{com}. local C "c.ep#c.conform c.ep#c.notax c.cp#c.conform c.cp#c.notax c.post#c.conform c.post#c.notax"
+{txt}
+{com}. qui reghdfe ln_sold ecp ecp_conf ecp_ntx `C', `A'
+{txt}
+{com}. show "T6 c1 baseline" ecp t
+{res}T6 c1 baseline                               b =    0.21306   se =   0.22242   p =  0.3404   N =   43571
+{txt}
+{com}. show "T6 c1 x conforming" ecp_conf t
+{res}T6 c1 x conforming                           b =   -0.14176   se =   0.35402   p =  0.6897   N =   43571
+{txt}
+{com}. show "T6 c1 x no-tax" ecp_ntx t
+{res}T6 c1 x no-tax                               b =   -0.46461   se =   0.67464   p =  0.4926   N =   43571
+{txt}
+{com}. qui reghdfe ln_sold ecp ecp_conf ecp_ntx `C' if drop_in_robustness != 1, `A'
+{txt}
+{com}. show "T6 c2 baseline" ecp t
+{res}T6 c2 baseline                               b =    0.29509   se =   0.23204   p =  0.2067   N =   40229
+{txt}
+{com}. show "T6 c2 x conforming" ecp_conf t
+{res}T6 c2 x conforming                           b =   -0.16675   se =   0.35839   p =  0.6428   N =   40229
+{txt}
+{com}. show "T6 c2 x no-tax" ecp_ntx t
+{res}T6 c2 x no-tax                               b =   -0.54514   se =   0.67037   p =  0.4182   N =   40229
+{txt}
+{com}. restore
+{txt}
+{com}. 
+. di as result _n "== Table 8, Panel B =="
+{res}
+== Table 8, Panel B ==
+{txt}
+{com}. use "$D/panel_corp_quarterly.dta", clear
+{txt}
+{com}. foreach fq in 2023q3 2024q3 {c -(}
+{txt}  2{com}.     preserve
+{txt}  3{com}.     keep if yq >= tq(`fq') - 8 & yq < tq(2025q3) & yq <= tq(`fq') + 7
+{txt}  4{com}.     gen fpost = yq >= tq(`fq')
+{txt}  5{com}.     gen fep = elig * fpost
+{txt}  6{com}.     qui ppmlhdfe n fep, absorb(cell yq) vce(cluster cell)
+{txt}  7{com}.     show "T8B placebo `fq' primary" fep z
+{txt}  8{com}.     restore
+{txt}  9{com}. {c )-}
+{txt}(1,326 observations deleted)
+{res}T8B placebo 2023q3 primary                   b =    0.09003   se =   0.03868   p =  0.0199   N =    1632
+{txt}(1,734 observations deleted)
+{res}T8B placebo 2024q3 primary                   b =   -0.01383   se =   0.04080   p =  0.7347   N =    1224
+{txt}
+{com}. use "$D/panel_main_monthly.dta", clear
+{txt}
+{com}. foreach fm in 2023m7 2024m7 {c -(}
+{txt}  2{com}.     preserve
+{txt}  3{com}.     keep if ym >= tm(`fm') - 24 & ym < tm(2025m7) & ym <= tm(`fm') + 23
+{txt}  4{com}.     gen fpost = ym >= tm(`fm')
+{txt}  5{com}.     gen fecp = elig * corp * fpost
+{txt}  6{com}.     qui ppmlhdfe n fecp, absorb(cell elig#ym corp#ym) vce(cluster st_el)
+{txt}  7{com}.     show "T8B placebo `fm' monthly DDD" fecp z
+{txt}  8{com}.     restore
+{txt}  9{com}. {c )-}
+{txt}(8,364 observations deleted)
+{res}T8B placebo 2023m7 monthly DDD               b =    0.33967   se =   0.13719   p =  0.0133   N =    9744
+{txt}(10,812 observations deleted)
+{res}T8B placebo 2024m7 monthly DDD               b =   -0.31461   se =   0.16425   p =  0.0554   N =    7272
+{txt}
+{com}. use "$D/analysis_sample.dta", clear
+{txt}
+{com}. foreach fq in 2023q3 2024q3 {c -(}
+{txt}  2{com}.     preserve
+{txt}  3{com}.     keep if corp == 1 & ln_sold_orig < . & yq >= tq(`fq') - 8 & yq <= tq(`fq') + 3 & yq < tq(2025q3)
+{txt}  4{com}.     gen fpost = yq >= tq(`fq')
+{txt}  5{com}.     gen fep = elig * fpost
+{txt}  6{com}.     qui reghdfe ln_sold_orig fep, absorb(st_gr ym) vce(cluster st_gr)
+{txt}  7{com}.     show "T8B placebo `fq' amounts" fep t
+{txt}  8{com}.     restore
+{txt}  9{com}. {c )-}
+{txt}(83,645 observations deleted)
+{res}T8B placebo 2023q3 amounts                   b =    0.00202   se =   0.07458   p =  0.9784   N =   21497
+{txt}(86,287 observations deleted)
+{res}T8B placebo 2024q3 amounts                   b =   -0.00175   se =   0.07925   p =  0.9824   N =   18854
+{txt}
+{com}. qui reghdfe ln_sold ecp if ambig == 0, `A'
+{txt}
+{com}. show "T8B baseline" ecp t
+{res}T8B baseline                                 b =    0.06762   se =   0.19975   p =  0.7357   N =   43571
+{txt}
+{com}. qui reghdfe ln_sold ecp, `A'
+{txt}
+{com}. show "T8B including ambiguous" ecp t
+{res}T8B including ambiguous                      b =   -0.04433   se =   0.17509   p =  0.8005   N =   88923
+{txt}
+{com}. qui reghdfe ln_sold ecp if ambig == 0 & ai_name_flag == 0, `A'
+{txt}
+{com}. show "T8B no AI names" ecp t
+{res}T8B no AI names                              b =    0.05533   se =   0.20144   p =  0.7841   N =   42789
+{txt}
+{com}. qui reghdfe ln_sold ecp if ambig == 0 & state != "CA", `A'
+{txt}
+{com}. show "T8B no California" ecp t
+{res}T8B no California                            b =    0.01044   se =   0.21921   p =  0.9621   N =   34197
+{txt}
+{com}. qui reghdfe ln_sold ecp if ambig == 0 & (inlist(industry_raw, "Biotechnology", "Pharmaceuticals", "Manufacturing") | elig == 0), `A'
+{txt}
+{com}. show "T8B bio/pharma/manufacturing" ecp t
+{res}T8B bio/pharma/manufacturing                 b =    0.54167   se =   0.32596   p =  0.0997   N =   15735
+{txt}
+{com}. gen post_f = filing_date > reform
+{txt}
+{com}. gen ecp_f  = elig * corp * post_f
+{txt}
+{com}. gen ym_f   = mofd(filing_date)
+{txt}
+{com}. qui reghdfe ln_sold ecp_f if ambig == 0, absorb(st_gr_corp elig#ym_f corp#ym_f) vce(cluster st_gr)
+{txt}
+{com}. show "T8B filing date" ecp_f t
+{res}T8B filing date                              b =    0.02514   se =   0.18708   p =  0.8934   N =   43571
+{txt}
+{com}. qui reghdfe ln_sold ecp if ambig == 0 & priced_equity == 1, `A'
+{txt}
+{com}. show "T8B priced equity only" ecp t
+{res}T8B priced equity only                       b =    0.20877   se =   0.24868   p =  0.4032   N =   28948
+{txt}
+{com}. qui reghdfe ln_sold_orig ecp if ambig == 0, `A'
+{txt}
+{com}. show "T8B amount at original notice" ecp t
+{res}T8B amount at original notice                b =    0.01652   se =   0.19991   p =  0.9343   N =   43391
+{txt}
+{com}. qui reghdfe ln_sold ecp if ambig == 0 & drop_in_robustness != 1, `A'
+{txt}
+{com}. show "T8B excl. DC NJ OR WA" ecp t
+{res}T8B excl. DC NJ OR WA                        b =    0.11649   se =   0.20919   p =  0.5790   N =   40229
+{txt}
+{com}. qui reghdfe ln_sold ecp if ambig == 0 & ym != tm(2025m6), `A'
+{txt}
+{com}. show "T8B excl. June 2025" ecp t
+{res}T8B excl. June 2025                          b =    0.07995   se =   0.19986   p =  0.6900   N =   43159
+{txt}
+{com}. qui reghdfe ln_sold ecp if ambig == 0 & sale_date_missing == 0, `A'
+{txt}
+{com}. show "T8B first-sale date reported" ecp t
+{res}T8B first-sale date reported                 b =    0.05743   se =   0.19648   p =  0.7707   N =   43262
+{txt}
+{com}. 
+. di as result _n "== Table 7 =="
+{res}
+== Table 7 ==
+{txt}
+{com}. use "$D/retiming_weekly.dta", clear
+{txt}
+{com}. qui reg n yta yt ya ta y2025 treat i.wk_id, vce(robust)
+{txt}
+{com}. show "T7 c1 OLS" yta t
+{res}T7 c1 OLS                                    b =    0.53086   se =   6.09768   p =  0.9307   N =     504
+{txt}
+{com}. qui poisson n yta yt ya ta y2025 treat i.wk_id, vce(robust)
+{txt}
+{com}. show "T7 c2 Poisson" yta z
+{res}T7 c2 Poisson                                b =    0.05807   se =   0.12612   p =  0.6452   N =     504
+{txt}
+{com}. qui reg n ytpre ytpost yt i.yr#i.wk_id i.group4#i.wk_id, vce(robust)
+{txt}
+{com}. show "T7 c3 weeks -3 to -1" ytpre t
+{res}T7 c3 weeks -3 to -1                         b =    4.28704   se =   7.80875   p =  0.5834   N =     504
+{txt}
+{com}. show "T7 c3 weeks 0 to 2" ytpost t
+{res}T7 c3 weeks 0 to 2                           b =    3.32407   se =   7.41753   p =  0.6544   N =     504
+{txt}
+{com}. qui reg ln_n ya y2025 i.wk_id if treat == 1, vce(robust)
+{txt}
+{com}. show "T7 c4 within eligible C-corps" ya t
+{res}T7 c4 within eligible C-corps                b =   -0.01437   se =   0.08138   p =  0.8601   N =     126
+{txt}
+{com}. qui reg ln_n ypre ypost y2025 i.wk_id if treat == 1, vce(robust)
+{txt}
+{com}. show "T7 c5 weeks -3 to -1" ypre t
+{res}T7 c5 weeks -3 to -1                         b =    0.05114   se =   0.10457   p =  0.6258   N =     126
+{txt}
+{com}. show "T7 c5 weeks 0 to 2" ypost t
+{res}T7 c5 weeks 0 to 2                           b =    0.01275   se =   0.13057   p =  0.9224   N =     126
+{txt}
+{com}. 
+. di as result _n "Done. Send qsbs2025_text_numbers.smcl"
+{res}
+Done. Send qsbs2025_text_numbers.smcl
+{txt}
+{com}. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}C:\Users\user\Desktop\qsbs2025_stata_package (1)\qsbs2025_text_numbers.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res} 7 Oct 2026, 17:12:46
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}

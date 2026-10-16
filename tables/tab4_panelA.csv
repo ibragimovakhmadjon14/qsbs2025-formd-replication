@@ -1,0 +1,13 @@
+="Table 4, Panel A. Triple difference, offering-level outcomes"
+
+="",="(1)",="(2)",="(3)",="(4)",="(5)"
+="",="ln(amount sold)",="Offering >= USD 10m",="ln(1+investors)",="ln(1+min investment)",="First-time issuer"
+
+="Eligible x Corp x Post",="0.068",="-0.049*",="-0.117",="-1.064**",="-0.062"
+="",="(0.200)",="(0.029)",="(0.109)",="(0.468)",="(0.049)"
+
+="Observations",="43,571",="47,989",="47,989",="47,989",="47,989"
+="R2",="0.101",="0.078",="0.061",="0.170",="0.075"
+
+="Standard errors in parentheses"
+="* p<0.10, ** p<0.05, *** p<0.01"
