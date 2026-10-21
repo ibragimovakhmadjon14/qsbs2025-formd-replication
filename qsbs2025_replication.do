@@ -4,8 +4,9 @@
 * relief move start-up fundraising? Early evidence from Form D notices"
 * (Ibragimov and Ruzieva, 2026)
 *
-* Input : data/clean/offerings.dta (built from the SEC Form D Data Sets by prep.py; the
-*         package ships it compressed as data/clean/offerings.zip and this file unzips it;
+* Input : data/clean/offerings.dta (built from the SEC Form D Data Sets 2008Q1-2026Q2 by
+*         prep.py and extended with the 2026Q3 archive by update_quarter.py; the package
+*         ships it compressed as data/clean/offerings.zip and this file unzips it;
 *         data/clean/offerings.xlsx is used if neither is present)
 * Output: tables/  (rtf and csv: Tables 1-8, A4-A6)
 *         figures/ (png: Figures 1-5, A1-A3)
@@ -32,9 +33,9 @@
 *      qsbs2025_text_numbers.do afterwards to print every number quoted in the manuscript
 *      with five decimals.
 *
-* The estimates reported in the manuscript are the ones produced by this file (log of
-* 7 October 2026 in logs/). Section 15 prints each of them next to the value quoted in
-* the paper. Small differences in the last decimal can arise across Stata versions from
+* The estimates reported in the manuscript are the ones produced by this file on the
+* 2008Q1-2026Q3 data (log in logs/). Section 15 prints each of them next to the value
+* quoted in the paper. Small differences in the last decimal can arise across Stata versions from
 * the PPML convergence criterion.
 *==============================================================================*
 version 14
@@ -256,8 +257,8 @@ qui count if late_rev == 1 & ambig == 0
 scalar chk_late_n = r(N)
 qui count if late_rev == 1 & ambig == 0 & ln_sold < .
 scalar chk_late_nreg = r(N)
-di as result "CHECK late_rev: " scalar(chk_late_n) " main-sample offerings with revenue above USD 5 million (expected 954), " ///
-    scalar(chk_late_nreg) " of them with ln(amount sold) (expected 752; Table 5, column 4 has N = 639 after reghdfe drops singletons)"
+di as result "CHECK late_rev: " scalar(chk_late_n) " main-sample offerings with revenue above USD 5 million (expected 1023), " ///
+    scalar(chk_late_nreg) " of them with ln(amount sold) (expected 785; Table 5, column 4 has N = 670 after reghdfe drops singletons)"
 
 egen st_gr      = group(state qsbs_group)
 egen st_gr_corp = group(state qsbs_group corp)
@@ -343,15 +344,15 @@ save "$D/analysis_sample.dta", replace
 preserve
 clear
 input str72 step notices issuers
-"All Form D submissions, 2008Q1-2026Q2 (original notices and amendments)" 763014 .
-"Original notices" 467925 .
-"First sale on or after 1 January 2019" 254175 210545
-"Excluding pooled investment funds" 127606 89060
-"Excluding business-combination offerings" 122191 86305
-"Issuers located in the 50 states and DC" 113853 82076
-"Corporations and LLCs only" 105312 74509
-"First sale on or before 15 June 2026 (broad sample)" 105145 74397
-"Classifiable industry group, eligible or excluded (main sample)" 47989 29692
+"All Form D submissions, 2008Q1-2026Q3 (original notices and amendments)" 778966 .
+"Original notices" 478216 .
+"First sale on or after 1 January 2019" 264408 219536
+"Excluding pooled investment funds" 131879 92165
+"Excluding business-combination offerings" 126290 89302
+"Issuers located in the 50 states and DC" 117720 84870
+"Corporations and LLCs only" 108850 76991
+"First sale on or before 15 September 2026 (broad sample)" 108631 76825
+"Classifiable industry group, eligible or excluded (main sample)" 49707 30774
 end
 format notices issuers %9.0fc
 list, noobs clean
@@ -374,8 +375,8 @@ if _rc == 0 {
     local im = r(N)
     drop _tb _tm
 }
-di as result "CHECK Table 1: broad sample " %9.0fc `nb' " offerings by " %9.0fc `ib' " issuers   (paper: 105,145 by 74,397)"
-di as result "CHECK Table 1: main sample  " %9.0fc `nmain' " offerings by " %9.0fc `im' " issuers   (paper: 47,989 by 29,692)"
+di as result "CHECK Table 1: broad sample " %9.0fc `nb' " offerings by " %9.0fc `ib' " issuers   (paper: 108,631 by 76,825)"
+di as result "CHECK Table 1: main sample  " %9.0fc `nmain' " offerings by " %9.0fc `im' " issuers   (paper: 49,707 by 30,774)"
 tab group4 if ambig == 0
 
 *------------------------------------------------------------------------------*
@@ -428,7 +429,7 @@ di as result _n "===== SECTION 4. Cell panels ====="
 use "$D/analysis_sample.dta", clear
 keep if corp == 1
 drop if inrange(event_date, td(01jul2025), td(04jul2025))
-keep if yq <= tq(2026q1)                         // 2026Q2 is a partial quarter
+keep if yq <= tq(2026q2)                         // 2026Q3 is a partial quarter
 gen one = 1
 collapse (sum) n = one, by(state elig yq)
 fillin state elig yq
@@ -444,7 +445,7 @@ save "$D/panel_corp_quarterly.dta", replace
 use "$D/analysis_sample.dta", clear
 keep if ambig == 0
 drop if inrange(event_date, td(01jul2025), td(04jul2025))
-keep if ym <= tm(2026m5)
+keep if ym <= tm(2026m8)
 gen one = 1
 collapse (sum) n = one (sum) n_first = first_formd, by(state elig corp ym)
 fillin state elig corp ym
@@ -465,7 +466,7 @@ save "$D/panel_main_monthly.dta", replace
 use "$D/analysis_sample.dta", clear
 keep if ambig == 0
 drop if inrange(event_date, td(01jul2025), td(04jul2025))
-keep if yq <= tq(2026q1)
+keep if yq <= tq(2026q2)
 gen one = 1
 collapse (sum) n = one, by(state elig corp yq)
 fillin state elig corp yq
@@ -505,13 +506,13 @@ estadd scalar pct = 100 * (exp(_b[ecp]) - 1)
 eststo m6
 esttab m1 m2 m3 m4 m5 m6 using "$T/tab3_counts.rtf", replace se `star' b(3) label keep(ep ecp) ///
     stats(pct N r2_p, fmt(1 %9.0fc 3) labels("Implied change, %" "Observations (cells)" "Pseudo-R2")) ///
-    mtitles("C-corps broad 2023Q1-26Q1" "C-corps broad 2019Q1-26Q1" "C-corps narrow monthly" ///
+    mtitles("C-corps broad 2023Q1-26Q2" "C-corps broad 2019Q1-26Q2" "C-corps narrow monthly" ///
             "LLCs narrow monthly" "DDD monthly" "DDD first-time") ///
     title("Table 3. Difference-in-differences and triple-difference estimates: counts of original notices")
 * CSV copy of the same table (opens in Excel):
 esttab m1 m2 m3 m4 m5 m6 using "$T/tab3_counts.csv", replace se `star' b(3) label keep(ep ecp) ///
     stats(pct N r2_p, fmt(1 %9.0fc 3) labels("Implied change, %" "Observations (cells)" "Pseudo-R2")) ///
-    mtitles("C-corps broad 2023Q1-26Q1" "C-corps broad 2019Q1-26Q1" "C-corps narrow monthly" ///
+    mtitles("C-corps broad 2023Q1-26Q2" "C-corps broad 2019Q1-26Q2" "C-corps narrow monthly" ///
             "LLCs narrow monthly" "DDD monthly" "DDD first-time") ///
     title("Table 3. Difference-in-differences and triple-difference estimates: counts of original notices")
 
@@ -521,12 +522,12 @@ esttab m1 m2 m3 m4 m5 m6 using "$T/tab3_counts.csv", replace se `star' b(3) labe
 di as result _n "===== SECTION 6. Quarterly event studies (Figures 2, 4, A1) - reference period 2024 ====="
 cap program drop qes
 program define qes
-    * qes depvar treatvar [if], absorb() cluster() file() ytitle() [ols last(quarter, default 2026q1)]
+    * qes depvar treatvar [if], absorb() cluster() file() ytitle() [ols last(quarter, default 2026q2)]
     syntax varlist(min=2 max=2) [if], absorb(string) cluster(string) file(string) ytitle(string) [ols last(string)]
     tokenize `varlist'
     local dep `1'
     local trt `2'
-    if "`last'" == "" local last "2026q1"
+    if "`last'" == "" local last "2026q2"
     local qa = tq(2023q1)
     local qb = tq(`last')
     local nq = `qb' - `qa' + 1
@@ -582,18 +583,18 @@ gen elig_corp = elig * corp
 qes n elig_corp, absorb(cell elig#yq corp#yq) cluster(st_el) file(figA1a_es_counts_ddd) ///
     ytitle("Triple-difference coefficient (PPML), 95% CI")
 
-* Figure 4: amounts, C-corps, broad control (offering level), to 2026Q2 as in the paper
+* Figure 4: amounts, C-corps, broad control (offering level), to 2026Q3 (partial quarter) as in the paper
 use "$D/analysis_sample.dta", clear
 keep if corp == 1 & ln_sold_orig < .
 qes ln_sold_orig elig, absorb(st_gr ym) cluster(st_gr) file(fig4_es_amounts_corps) ///
-    ytitle("Coefficient (OLS, log amount), 95% CI") ols last(2026q2)
+    ytitle("Coefficient (OLS, log amount), 95% CI") ols last(2026q3)
 
-* Figure A1 (bottom): amounts, triple difference, to 2026Q2 as in the paper
+* Figure A1 (bottom): amounts, triple difference, to 2026Q3 (partial quarter) as in the paper
 use "$D/analysis_sample.dta", clear
 keep if ambig == 0 & ln_sold_orig < .
 gen elig_corp = elig * corp
 qes ln_sold_orig elig_corp, absorb(st_gr_corp elig#ym corp#ym) cluster(st_gr) file(figA1b_es_amounts_ddd) ///
-    ytitle("Triple-difference coefficient (OLS, log amount), 95% CI") ols last(2026q2)
+    ytitle("Triple-difference coefficient (OLS, log amount), 95% CI") ols last(2026q3)
 
 *------------------------------------------------------------------------------*
 * 7. Figure 3: synthetic control for eligible C-corporation counts
@@ -764,7 +765,7 @@ end
 
 use "$D/analysis_sample.dta", clear
 drop if inrange(event_date, td(01jul2025), td(04jul2025))
-keep if yq <= tq(2026q1)
+keep if yq <= tq(2026q2)
 gen unitname = "TREATED eligible C-corps" if elig == 1 & corp == 1
 replace unitname = industry_raw + " | " + cond(corp == 1, "C-corp", "LLC") if unitname == ""
 gen one = 1
@@ -806,11 +807,11 @@ if _rc == 0 {
            (connected synthetic yq, lcolor(gs8) mcolor(gs8) lpattern(dash) msymbol(S) msize(small)), ///
         xline(`=tq(2025q3) - 0.5', lpattern(dot) lcolor(gs8)) ///
         legend(order(1 "Eligible C-corporations" 2 "Synthetic control") rows(2) ring(0) position(7) size(small)) ///
-        xtitle("") ytitle("Original notices per quarter") xlabel(`=tq(2019q1)'(4)`=tq(2026q1)', angle(45)) ///
+        xtitle("") ytitle("Original notices per quarter") xlabel(`=tq(2019q1)'(4)`=tq(2026q2)', angle(45)) ///
         name(sc_path, replace) nodraw
     twoway `gl' (line gap_tr yq, lcolor(black) lwidth(thick)), ///
         yline(0, lpattern(dash) lcolor(gs8)) xline(`=tq(2025q3) - 0.5', lpattern(dot) lcolor(gs8)) ///
-        ylabel(-0.6(0.2)0.6) xlabel(`=tq(2019q1)'(4)`=tq(2026q1)', angle(45)) ///
+        ylabel(-0.6(0.2)0.6) xlabel(`=tq(2019q1)'(4)`=tq(2026q2)', angle(45)) ///
         legend(`lg' rows(2) ring(0) position(11) size(small)) ///
         xtitle("") ytitle("Gap: log(actual) - log(synthetic)") name(sc_gap, replace) nodraw
     graph combine sc_path sc_gap, rows(1) xsize(12.5) ysize(5)
@@ -1043,30 +1044,31 @@ graph export "$F/fig5_retiming.png", replace width(2400)
 
 *------------------------------------------------------------------------------*
 * 12. Table 8, Panel A: placebo-in-time distributions over fictitious reform quarters
-*     (13 dates 2021Q3-2024Q3; window = ten pre-reform and THREE post-reform quarters,
-*      data before July 2025 only). The September version used fq+3, i.e. four post
-*      quarters; that variant is still computed (RI4) for comparison only.
+*     (13 dates 2021Q3-2024Q3; window = ten pre-reform and FOUR post-reform quarters,
+*      data before July 2025 only, matching the four full post-reform quarters 2025Q3-2026Q2
+*      of the actual estimate). The three-post-quarter window of the June 2026 data vintage
+*      is still computed (RI3) for comparison only.
 *------------------------------------------------------------------------------*
 di as result _n "===== SECTION 12. Table 8, Panel A: placebo-in-time distributions ====="
 matrix RI  = J(13, 4, .)
-matrix RI4 = J(13, 4, .)
+matrix RI3 = J(13, 4, .)
 matrix colnames RI  = quarter b_primary b_ddd b_national
-matrix colnames RI4 = quarter b_primary b_ddd b_national
-* actual estimates in the same window (2023Q1-2026Q1: ten pre and three post quarters)
+matrix colnames RI3 = quarter b_primary b_ddd b_national
+* actual estimates in the same window (2023Q1-2026Q2: ten pre and four post quarters)
 use "$D/panel_corp_quarterly.dta", clear
-ppmlhdfe n ep if yq >= tq(2025q3) - 10 & yq <= tq(2025q3) + 2, absorb(cell yq) vce(cluster cell)
+ppmlhdfe n ep if yq >= tq(2025q3) - 10 & yq <= tq(2025q3) + 3, absorb(cell yq) vce(cluster cell)
 local b_prim = _b[ep]
 scalar chk_prim_b  = _b[ep]
 scalar chk_prim_se = _se[ep]
 use "$D/panel_main_quarterly.dta", clear
-ppmlhdfe n ecp if yq >= tq(2025q3) - 10 & yq <= tq(2025q3) + 2, absorb(cell elig#yq corp#yq) vce(cluster st_el)
+ppmlhdfe n ecp if yq >= tq(2025q3) - 10 & yq <= tq(2025q3) + 3, absorb(cell elig#yq corp#yq) vce(cluster st_el)
 local b_ddd = _b[ecp]
 scalar chk_ddd_b  = _b[ecp]
 scalar chk_ddd_se = _se[ecp]
 * national series (4 groups x quarter, ln counts), same window, OLS and Newey-West (HAC) errors
 * computed within each group's series (tsset g yq); the paper reports the two-lag version
 collapse (sum) n, by(elig corp yq)
-keep if yq >= tq(2025q3) - 10 & yq <= tq(2025q3) + 2
+keep if yq >= tq(2025q3) - 10 & yq <= tq(2025q3) + 3
 gen ln_n  = ln(n)
 gen npost = yq >= tq(2025q3)
 gen necp  = elig * corp * npost
@@ -1085,9 +1087,9 @@ if _rc == 0 scalar chk_nat_se_nw2 = _se[necp]
 * placebo reforms
 local r = 1
 forvalues fq = `=tq(2021q3)'/`=tq(2024q3)' {
-    foreach w in 2 3 {
-        if `w' == 2 local M "RI"
-        else local M "RI4"
+    foreach w in 3 2 {
+        if `w' == 3 local M "RI"
+        else local M "RI3"
         matrix `M'[`r', 1] = `fq'
         use "$D/panel_corp_quarterly.dta", clear
         keep if yq >= `fq' - 10 & yq <= `fq' + `w'
@@ -1114,16 +1116,16 @@ forvalues fq = `=tq(2021q3)'/`=tq(2024q3)' {
     }
     local ++r
 }
-foreach M in RI RI4 {
+foreach M in RI RI3 {
     preserve
     clear
     qui set obs 13
     svmat `M', names(col)
     format quarter %tq
     if "`M'" == "RI" export delimited using "$T/tab8_panelA_ri_placebos.csv", replace
-    else export delimited using "$T/tab8_panelA_ri_placebos_4post.csv", replace
-    if "`M'" == "RI" di as result _n "Placebo-in-time distributions, three post-reform quarters (as in the paper):"
-    else di as result _n "For comparison only - four post-reform quarters (September version):"
+    else export delimited using "$T/tab8_panelA_ri_placebos_3post.csv", replace
+    if "`M'" == "RI" di as result _n "Placebo-in-time distributions, four post-reform quarters (as in the paper):"
+    else di as result _n "For comparison only - three post-reform quarters (June 2026 data vintage):"
     foreach v in b_primary b_ddd b_national {
         if "`v'" == "b_primary"  local act = `b_prim'
         if "`v'" == "b_ddd"      local act = `b_ddd'
@@ -1137,8 +1139,8 @@ foreach M in RI RI4 {
             ", range " %6.3f r(min) " to " %6.3f r(max) "; share |placebo| >= |actual| " %4.2f `p'
     }
     if "`M'" == "RI" {
-        di as result "  paper, Table 8: primary +0.071; 0.051; +0.003 to +0.182; 0.77 | triple difference +0.250; 0.257;"
-        di as result "                 -0.079 to +0.688; 0.31 | national series +0.242; 0.251; -0.096 to +0.676; 0.31"
+        di as result "  paper, Table 8: primary +0.073; 0.047; +0.003 to +0.161; 0.46 | triple difference +0.250; 0.258;"
+        di as result "                 -0.188 to +0.637; 0.38 | national series +0.244; 0.257; -0.206 to +0.631; 0.38"
         * Figure A3: placebo distributions (frequencies, whole-number ticks)
         foreach v in b_primary b_ddd {
             qui sum `v'
@@ -1301,17 +1303,17 @@ esttab matrix(V, fmt(4 3 2)) using "$T/tabA6_variance.csv", replace ///
 use "$D/panel_main_monthly.dta", clear
 keep if corp == 0 & ym >= tm(2023m1)
 local names ""
-forvalues m = `=tm(2023m1)'/`=tm(2026m5)' {
+forvalues m = `=tm(2023m1)'/`=tm(2026m8)' {
     if `m' >= tm(2024m1) & `m' <= tm(2024m12) continue
     gen M_`m' = (ym == `m') * elig
     local names "`names' M_`m'"
 }
 ppmlhdfe n `names', absorb(cell ym) vce(cluster st_el)
 tempname B
-local nm = tm(2026m5) - tm(2023m1) + 1
+local nm = tm(2026m8) - tm(2023m1) + 1
 matrix `B' = J(`nm', 4, .)
 local r = 1
-forvalues m = `=tm(2023m1)'/`=tm(2026m5)' {
+forvalues m = `=tm(2023m1)'/`=tm(2026m8)' {
     matrix `B'[`r', 1] = `m'
     if `m' >= tm(2024m1) & `m' <= tm(2024m12) {
         matrix `B'[`r', 2] = 0
@@ -1340,21 +1342,21 @@ graph export "$F/figA2_llc_check.png", replace width(2400)
 * 15. Checks against the manuscript (send this part of the log to the authors)
 *------------------------------------------------------------------------------*
 di as result _n "===== SECTION 15. CHECKS AGAINST THE MANUSCRIPT ====="
-di as result "Revenue above USD 5m (main sample / with ln amount): " scalar(chk_late_n) " / " scalar(chk_late_nreg) "   expected: 954 / 752"
-di as result "Table 5, col. 3 (revenue <= USD 5m):  b = " %7.3f scalar(chk_h3_b) " (" %5.3f scalar(chk_h3_se) "), N = " %6.0f scalar(chk_h3_N) "    paper: 0.003 (0.201), N = 42,819"
-di as result "Table 5, col. 4 (revenue > USD 5m):   b = " %7.3f scalar(chk_h4_b) " (" %5.3f scalar(chk_h4_se) "), N = " %6.0f scalar(chk_h4_N) "    paper: -1.064 (2.396), N = 639"
-di as result "Table 5, equality p-values:           rounds " %4.2f scalar(chk_p_rep) ", revenue " %4.2f scalar(chk_p_late) "            paper: 0.39, 0.57"
-di as result "Table 4, Panel A, col. 4 (min. inv.):  b = " %7.3f scalar(chk_a4_b) " (" %5.3f scalar(chk_a4_se) ")              paper: -1.064 (0.469)"
-di as result "Table 4, Panel B, col. 1:              b = " %7.3f scalar(chk_b1_b) " (" %5.3f scalar(chk_b1_se) ")              paper: -0.324 (0.092)"
-di as result "Table 7, col. 3 robust SEs:            " %6.3f scalar(chk_t7_se1) ", " %6.3f scalar(chk_t7_se2) "                    paper: 7.809, 7.418"
-di as result "Table 8, Panel A, primary design:      b = " %7.3f scalar(chk_prim_b) " (" %5.3f scalar(chk_prim_se) ")              paper: 0.032 (0.069)"
-di as result "Table 8, Panel A, quarterly DDD:       b = " %7.3f scalar(chk_ddd_b) " (" %5.3f scalar(chk_ddd_se) ")              paper: -0.359 (0.132)"
+di as result "Revenue above USD 5m (main sample / with ln amount): " scalar(chk_late_n) " / " scalar(chk_late_nreg) "   expected: 1023 / 785"
+di as result "Table 5, col. 3 (revenue <= USD 5m):  b = " %7.3f scalar(chk_h3_b) " (" %5.3f scalar(chk_h3_se) "), N = " %6.0f scalar(chk_h3_N) "    paper: 0.025 (0.200), N = 44,354"
+di as result "Table 5, col. 4 (revenue > USD 5m):   b = " %7.3f scalar(chk_h4_b) " (" %5.3f scalar(chk_h4_se) "), N = " %6.0f scalar(chk_h4_N) "    paper: -0.406 (2.092), N = 670"
+di as result "Table 5, equality p-values:           rounds " %4.2f scalar(chk_p_rep) ", revenue " %4.2f scalar(chk_p_late) "            paper: 0.29, 0.81"
+di as result "Table 4, Panel A, col. 4 (min. inv.):  b = " %7.3f scalar(chk_a4_b) " (" %5.3f scalar(chk_a4_se) ")              paper: -0.893 (0.482)"
+di as result "Table 4, Panel B, col. 1:              b = " %7.3f scalar(chk_b1_b) " (" %5.3f scalar(chk_b1_se) ")              paper: -0.377 (0.089)"
+di as result "Table 7, col. 3 robust SEs:            " %6.3f scalar(chk_t7_se1) ", " %6.3f scalar(chk_t7_se2) "                    paper: 7.601, 7.756"
+di as result "Table 8, Panel A, primary design:      b = " %7.3f scalar(chk_prim_b) " (" %5.3f scalar(chk_prim_se) ")              paper: 0.060 (0.068)"
+di as result "Table 8, Panel A, quarterly DDD:       b = " %7.3f scalar(chk_ddd_b) " (" %5.3f scalar(chk_ddd_se) ")              paper: -0.346 (0.124)"
 di as result "Table 8, Panel A, national series:     b = " %7.3f scalar(chk_nat_b) "  OLS SE " %5.3f scalar(chk_nat_se_ols) ///
-    ", Newey-West lag 1 " %5.3f scalar(chk_nat_se_nw1) ", lag 2 " %5.3f scalar(chk_nat_se_nw2) "    paper: -0.324 (0.138, lag 2)"
-di as result "Table 8, Panel B, filing date:         b = " %7.3f scalar(chk_fd_b) " (" %5.3f scalar(chk_fd_se) ")              paper: 0.025 (0.187)"
+    ", Newey-West lag 1 " %5.3f scalar(chk_nat_se_nw1) ", lag 2 " %5.3f scalar(chk_nat_se_nw2) "    paper: -0.322 (0.127, lag 2)"
+di as result "Table 8, Panel B, filing date:         b = " %7.3f scalar(chk_fd_b) " (" %5.3f scalar(chk_fd_se) ")              paper: -0.078 (0.184)"
 di as result "Synthetic control: pre-RMSPE " %6.4f scalar(sc_pre) ", mean post gap " %7.4f scalar(sc_gap_mean) ", p = " %4.2f scalar(sc_p) ///
     ", donor gaps " %6.3f scalar(sc_gmin) " to " %6.3f scalar(sc_gmax) ", donors drawn " scalar(sc_ngood)
-di as result "                   paper: 2.8 log points, 0.000 (gaps +0.023, -0.012, -0.010), p = 1.00, -0.456 to +0.640, 8 donors"
+di as result "                   paper: 2.8 log points, +0.018 (gaps +0.021, -0.007, -0.002, +0.061), p = 0.73, -0.380 to +0.433, 8 donors"
 
 di as result _n "Done. Tables in $T, figures in $F. Log: qsbs2025_replication.smcl"
 log close

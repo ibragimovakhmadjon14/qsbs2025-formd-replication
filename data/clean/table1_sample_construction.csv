@@ -1,7 +1,9 @@
 step,notices,issuers
-New notices from sample start,254175,210545
-Excluding pooled investment funds,127606,89060
-Excluding business-combination offerings,122191,86305
-Issuers located in the 50 states and DC,113853,82076
-Corporations and LLCs only,105312,74509
-Classifiable industry group (eligible or excluded),48055,29725
+All Form D submissions (original notices and amendments),778966,
+Original notices,478216,
+First sale on or after 1 January 2019,264408,219536
+Excluding pooled investment funds,131879,92165
+Excluding business-combination offerings,126290,89302
+Issuers located in the 50 states and DC,117720,84870
+Corporations and LLCs only,108850,76991
+Classifiable industry group (eligible or excluded),49791,30826

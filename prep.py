@@ -27,7 +27,8 @@ Sample construction (Table 1 of the paper)
     5. drop offerings related to a business combination
     6. keep issuers located in the 50 states and the District of Columbia
     7. keep issuers organised as corporations or limited liability companies
-The filter "first sale on or before 15 June 2026" and the classification into eligible,
+The end-of-sample filter (first sale on or before 15 September 2026 in the submitted version;
+15 June 2026 in the June 2026 data vintage) and the classification into eligible,
 excluded and ambiguous industry groups (Table A1) are applied by qsbs2025_replication.do,
 which also drops one notice whose reported sale date lies after the end of the data.
 
@@ -204,12 +205,18 @@ def clean_cik(s):
 
 # ----------------------------------------------------------------------------- read all archives
 def read_archives(raw_dir):
+    """Read every quarterly archive in a folder."""
     zips = sorted(f for f in os.listdir(raw_dir) if f.lower().endswith(".zip"))
     if not zips:
         sys.exit(f"no .zip archives found in {raw_dir}")
+    return read_archives_files([os.path.join(raw_dir, z) for z in zips])
+
+
+def read_archives_files(paths):
+    """Read the given quarterly archives (full paths) into one frame, one row per submission."""
     parts = []
-    for z in zips:
-        path = os.path.join(raw_dir, z)
+    for path in paths:
+        z = os.path.basename(path)
         with zipfile.ZipFile(path) as zf:
             members = {k: find_member(zf, v) for k, v in FILES.items()}
             missing = [k for k, m in members.items() if m is None]
@@ -278,6 +285,34 @@ def read_archives(raw_dir):
     if len(allf) < before:
         log(f"  {before - len(allf):,} duplicate accession numbers across archives removed")
     return allf.reset_index(drop=True)
+
+
+def derive(d):
+    """Add the variables of offerings.dta to a frame of original notices (after the sample restrictions)."""
+    d["qsbs_group"] = d["industry_raw"].map(QSBS_GROUP).fillna("ambiguous")
+    d["in_sample"] = 1
+    d["priced_equity"] = ((d["sec_equity"] == 1) & (d["sec_debt"] == 0) & (d["sec_other"] == 0)).astype(int)
+    desc = d["other_desc"].fillna("").astype(str)
+    d["safe_flag"] = ((d["sec_other"] == 1) &
+                      (desc.str.contains(r"\bSAFE\b|\bSAFEs\b", regex=True) |
+                       desc.str.contains(r"simple agreement", case=False, regex=True))).astype(int)
+    d["convertible_flag"] = ((d["sec_other"] == 1) &
+                             desc.str.contains(r"convertible|conv\.?\s*note", case=False, regex=True)).astype(int)
+    ex = d["exemptions"].fillna("").astype(str)
+    d["rule506b"] = ex.str.contains(r"06b", case=False, regex=True).astype(int)
+    d["rule506c"] = ex.str.contains(r"06c", case=False, regex=True).astype(int)
+    d["rule504"] = ex.str.contains(r"(?<!\d)04(?!\d)", regex=True).astype(int)
+    d["inc_within_5y"] = d["inc_span"].str.lower().str.contains("within", na=False).astype(int)
+    d.loc[d["inc_within_5y"] == 0, "inc_year"] = np.nan
+    d["delaware_inc"] = d["jurisdiction"].isin(["DELAWARE", "DE"]).astype(int)
+    name = d["name"].fillna("").astype(str)
+    d["ai_name_flag"] = (name.str.contains(r"(?<![A-Za-z])A\.?I\.?(?![A-Za-z])", regex=True) |
+                         name.str.contains(r"artificial intelligence", case=False, regex=True) |
+                         name.str.lower().str.endswith(".ai")).astype(int)
+    d["min_investment"] = d["min_investment"].fillna(0)
+    d["n_investors"] = d["n_investors"].fillna(0)
+    d["amount_sold"] = d["amount_sold"].fillna(0)
+    return d
 
 
 # ----------------------------------------------------------------------------- build
@@ -357,30 +392,7 @@ def build(raw_dir, out_dir, write_xlsx=True, suffix=""):
     d = d[d["entity"].notna()]
     step("Corporations and LLCs only", d)
 
-    # variables
-    d["qsbs_group"] = d["industry_raw"].map(QSBS_GROUP).fillna("ambiguous")
-    d["in_sample"] = 1
-    d["priced_equity"] = ((d["sec_equity"] == 1) & (d["sec_debt"] == 0) & (d["sec_other"] == 0)).astype(int)
-    desc = d["other_desc"].fillna("").astype(str)
-    d["safe_flag"] = ((d["sec_other"] == 1) &
-                      (desc.str.contains(r"\bSAFE\b|\bSAFEs\b", regex=True) |
-                       desc.str.contains(r"simple agreement", case=False, regex=True))).astype(int)
-    d["convertible_flag"] = ((d["sec_other"] == 1) &
-                             desc.str.contains(r"convertible|conv\.?\s*note", case=False, regex=True)).astype(int)
-    ex = d["exemptions"].fillna("").astype(str)
-    d["rule506b"] = ex.str.contains(r"06b", case=False, regex=True).astype(int)
-    d["rule506c"] = ex.str.contains(r"06c", case=False, regex=True).astype(int)
-    d["rule504"] = ex.str.contains(r"(?<!\d)04(?!\d)", regex=True).astype(int)
-    d["inc_within_5y"] = d["inc_span"].str.lower().str.contains("within", na=False).astype(int)
-    d.loc[d["inc_within_5y"] == 0, "inc_year"] = np.nan
-    d["delaware_inc"] = d["jurisdiction"].isin(["DELAWARE", "DE"]).astype(int)
-    name = d["name"].fillna("").astype(str)
-    d["ai_name_flag"] = (name.str.contains(r"(?<![A-Za-z])A\.?I\.?(?![A-Za-z])", regex=True) |
-                         name.str.contains(r"artificial intelligence", case=False, regex=True) |
-                         name.str.lower().str.endswith(".ai")).astype(int)
-    d["min_investment"] = d["min_investment"].fillna(0)
-    d["n_investors"] = d["n_investors"].fillna(0)
-    d["amount_sold"] = d["amount_sold"].fillna(0)
+    d = derive(d)
 
     out_cols = ["accessionnumber", "cik", "state", "qsbs_group", "industry_raw", "entity", "in_sample",
                 "filing_date", "sale_date", "event_date", "sale_date_missing", "rev_range",
@@ -395,7 +407,7 @@ def build(raw_dir, out_dir, write_xlsx=True, suffix=""):
               "inc_within_5y", "delaware_inc", "ai_name_flag", "is_fund", "bus_combination"]:
         out[c] = out[c].astype("int32")
 
-    # classification count for information (the do-file applies the 15 June 2026 cut-off first)
+    # classification count for information (the do-file applies the end-of-sample cut-off first)
     main = out[out["qsbs_group"].isin(["eligible", "excluded"])]
     counts.append(("Classifiable industry group (eligible or excluded)", len(main), main["cik"].nunique()))
 

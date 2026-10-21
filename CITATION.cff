@@ -11,8 +11,8 @@ authors:
     given-names: Nilufar
     orcid: "https://orcid.org/0009-0008-7684-7298"
     affiliation: "Cornell University"
-version: "1.0.0"
-date-released: "2026-10-16"
+version: "1.1.0"
+date-released: "2026-10-20"
 license: MIT
 keywords:
   - Qualified Small Business Stock
@@ -23,7 +23,7 @@ keywords:
   - start-up finance
   - business angels
   - difference-in-differences
-abstract: "Stata and Python code, the estimation input built from SEC Form D Data Sets (2008Q1-2026Q2) and the state conformity coding used to evaluate the July 2025 expansion of the Section 1202 QSBS exclusion."
+abstract: "Stata and Python code, the estimation input built from SEC Form D Data Sets (2008Q1-2026Q3) and the state conformity coding used to evaluate the July 2025 expansion of the Section 1202 QSBS exclusion."
 preferred-citation:
   type: unpublished
   title: "Did the 2025 expansion of Qualified Small Business Stock relief move start-up fundraising? Early evidence from Form D notices"

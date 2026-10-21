@@ -35,17 +35,17 @@ if "`found'" == "" {
 }
 global D "`found'"
 di as text "data folder: $D"
-* the datasets must come from the new version of qsbs2025_replication.do (revenue cut-off USD 5 million)
+* the datasets must come from the current version of qsbs2025_replication.do
 use "$D/analysis_sample.dta", clear
 cap confirm variable rev25
 local new = (_rc == 0)
 qui count if late_rev == 1 & ambig == 0
-if `new' == 0 | r(N) != 954 {
-    di as error "data/clean/analysis_sample.dta comes from an older run (" r(N) " offerings with revenue above USD 5 million, expected 954)."
-    di as error "Run the new qsbs2025_replication.do in this folder first, then this file."
+if `new' == 0 {
+    di as error "data/clean/analysis_sample.dta comes from an older run of qsbs2025_replication.do."
+    di as error "Run the current qsbs2025_replication.do in this folder first, then this file."
     exit 459
 }
-di as text "analysis_sample.dta is from the new run: 954 offerings with revenue above USD 5 million"
+di as text "analysis_sample.dta: " r(N) " main-sample offerings with revenue above USD 5 million"
 
 * show "label" coefficient t|z : b, se and the p-value the command itself reports
 cap program drop show
@@ -62,9 +62,9 @@ end
 di as result _n "== Table 3 (and Table A6 baseline) =="
 use "$D/panel_corp_quarterly.dta", clear
 qui ppmlhdfe n ep if yq >= tq(2023q1), absorb(cell yq) vce(cluster cell)
-show "T3 c1 primary, 2023Q1-2026Q1 (= T8A row 1)" ep z
+show "T3 c1 primary, 2023Q1-2026Q2 (= T8A row 1)" ep z
 qui ppmlhdfe n ep, absorb(cell yq) vce(cluster cell)
-show "T3 c2 broad, 2019Q1-2026Q1" ep z
+show "T3 c2 broad, 2019Q1-2026Q2" ep z
 use "$D/panel_main_monthly.dta", clear
 qui ppmlhdfe n ep if corp == 1, absorb(cell ym) vce(cluster st_el)
 show "T3 c3 C-corps narrow monthly" ep z
@@ -96,7 +96,7 @@ show "A5 OLS ln(1+n)" ec_trend t
 
 di as result _n "== Table 8, Panel A (actual estimates) =="
 use "$D/panel_main_quarterly.dta", clear
-qui ppmlhdfe n ecp if yq >= tq(2025q3) - 10 & yq <= tq(2025q3) + 2, absorb(cell elig#yq corp#yq) vce(cluster st_el)
+qui ppmlhdfe n ecp if yq >= tq(2025q3) - 10 & yq <= tq(2025q3) + 3, absorb(cell elig#yq corp#yq) vce(cluster st_el)
 show "T8A quarterly DDD" ecp z
 
 di as result _n "== Table 4 =="

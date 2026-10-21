@@ -1,17 +1,17 @@
 ="Table 3. Difference-in-differences and triple-difference estimates: counts of original notices"
 
 ="",="(1)",="(2)",="(3)",="(4)",="(5)",="(6)"
-="",="C-corps broad 2023Q1-26Q1",="C-corps broad 2019Q1-26Q1",="C-corps narrow monthly",="LLCs narrow monthly",="DDD monthly",="DDD first-time"
+="",="C-corps broad 2023Q1-26Q2",="C-corps broad 2019Q1-26Q2",="C-corps narrow monthly",="LLCs narrow monthly",="DDD monthly",="DDD first-time"
 
-="Eligible x Post",="0.032",="0.108",="-0.060",="-0.071",="",=""
-="",="(0.068)",="(0.108)",="(0.119)",="(0.123)",="",=""
+="Eligible x Post",="0.060",="0.136",="-0.091",="-0.077",="",=""
+="",="(0.068)",="(0.107)",="(0.121)",="(0.109)",="",=""
 
-="Eligible x Corp x Post",="",="",="",="",="0.007",="0.048"
-="",="",="",="",="",="(0.131)",="(0.156)"
+="Eligible x Corp x Post",="",="",="",="",="-0.012",="-0.016"
+="",="",="",="",="",="(0.126)",="(0.183)"
 
-="Implied change, %",="3.3",="11.4",="-5.8",="-6.8",="0.7",="4.9"
-="Observations (cells)",="1,326",="2,958",="9,078",="9,078",="18,156",="18,156"
-="Pseudo-R2",="0.851",="0.868",="0.779",="0.420",="0.722",="0.605"
+="Implied change, %",="6.1",="14.6",="-8.7",="-7.4",="-1.2",="-1.6"
+="Observations (cells)",="1,428",="3,060",="9,384",="9,384",="18,768",="18,768"
+="Pseudo-R2",="0.851",="0.866",="0.777",="0.418",="0.721",="0.606"
 
 ="Standard errors in parentheses"
 ="* p<0.10, ** p<0.05, *** p<0.01"

@@ -3,7 +3,7 @@
 ="",="(1)",="(2)"
 ="",="PPML",="OLS ln(1+n)"
 
-="Eligible x Corp x linear month trend",="0.0096***",="0.0034***"
+="Eligible x Corp x linear month trend",="0.0096***",="0.0035***"
 ="",="(0.0035)",="(0.0009)"
 
 ="Observations (cells)",="15,912",="15,912"
