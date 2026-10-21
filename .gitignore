@@ -1,6 +1,11 @@
 # raw SEC archives are not redistributed (download them from sec.gov into data/raw/)
 data/raw/
-*.zip
+# datasets that the do-file re-creates from offerings.dta
+data/clean/analysis_sample.dta
+data/clean/panel_*.dta
+data/clean/retiming_weekly.dta
+data/clean/offerings.dta
+data/clean/*_rebuilt.*
 # offline copies of user-written Stata packages, if any
 ado/
 ado_offline_update/
